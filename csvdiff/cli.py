@@ -1,10 +1,12 @@
 """CLI entry point for csvdiff."""
-import sys
+
 import argparse
-from csvdiff.parser import read_csv
+import sys
+
 from csvdiff.differ import compute_diff
+from csvdiff.exporter import export_csv, export_json, export_markdown
+from csvdiff.parser import read_csv
 from csvdiff.reporter import render_report
-from csvdiff.filter import filter_columns
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -15,11 +17,13 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("file_a", help="Original CSV file")
     p.add_argument("file_b", help="Modified CSV file")
     p.add_argument("--key", required=True, help="Column to use as row identifier")
-    p.add_argument("--format", choices=["text", "json"], default="text", dest="fmt")
-    p.add_argument("--include-columns", nargs="+", metavar="COL", default=None,
-                   help="Only diff these columns")
-    p.add_argument("--exclude-columns", nargs="+", metavar="COL", default=None,
-                   help="Exclude these columns from diff")
+    p.add_argument(
+        "--format",
+        choices=["text", "json", "csv", "markdown"],
+        default="text",
+        help="Output format (default: text)",
+    )
+    p.add_argument("--no-color", action="store_true", help="Disable colored output")
     return p
 
 
@@ -28,18 +32,23 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        rows_a = read_csv(args.file_a, args.key)
-        rows_b = read_csv(args.file_b, args.key)
-    except (FileNotFoundError, KeyError) as exc:
+        rows_a = read_csv(args.file_a, key_column=args.key)
+        rows_b = read_csv(args.file_b, key_column=args.key)
+    except (FileNotFoundError, ValueError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
 
-    if args.include_columns or args.exclude_columns:
-        rows_a = filter_columns(rows_a, include=args.include_columns, exclude=args.exclude_columns)
-        rows_b = filter_columns(rows_b, include=args.include_columns, exclude=args.exclude_columns)
+    result = compute_diff(rows_a, rows_b, key_column=args.key)
 
-    result = compute_diff(rows_a, rows_b, args.key)
-    print(render_report(result, fmt=args.fmt))
+    if args.format == "json":
+        print(export_json(result))
+    elif args.format == "csv":
+        print(export_csv(result), end="")
+    elif args.format == "markdown":
+        print(export_markdown(result), end="")
+    else:
+        print(render_report(result, color=not args.no_color))
+
     return 1 if result.has_changes() else 0
 
 
