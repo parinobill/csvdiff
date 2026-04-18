@@ -43,3 +43,20 @@ def select_columns(
 ) -> List[Dict[str, str]]:
     """Reorder/select columns, filling missing keys with empty string."""
     return [{col: row.get(col, "") for col in columns} for row in rows]
+
+
+def rename_columns(
+    rows: List[Dict[str, str]],
+    mapping: Dict[str, str],
+) -> List[Dict[str, str]]:
+    """Rename columns in each row according to a mapping.
+
+    Keys in mapping are old column names; values are new column names.
+    Columns not present in mapping are left unchanged.
+    """
+    if not mapping:
+        return rows
+    return [
+        {mapping.get(k, k): v for k, v in row.items()}
+        for row in rows
+    ]
