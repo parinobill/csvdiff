@@ -48,6 +48,17 @@ def test_export_json_modified_row():
     assert rec["score_new"] == "95"
 
 
+def test_export_json_total_matches_changes_count():
+    """Ensure 'total' field always matches the actual number of change records."""
+    result = _make_result(
+        _added("1", {"id": "1"}),
+        _removed("2", {"id": "2"}),
+        _modified("3", {"val": ("a", "b")}),
+    )
+    data = json.loads(export_json(result))
+    assert data["total"] == len(data["changes"])
+
+
 # --- export_csv ---
 
 def test_export_csv_empty_result():
