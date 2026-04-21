@@ -65,6 +65,14 @@ def test_group_by_field_value_missing_field_uses_empty_string():
     assert "" in groups
 
 
+def test_group_by_field_value_modified_uses_after():
+    """For modified rows, grouping should use the 'after' value of the field."""
+    r = _make_result(_modified("1", {"dept": "eng"}, {"dept": "hr"}))
+    groups = group_by_field_value(r, "dept")
+    assert "hr" in groups
+    assert "eng" not in groups
+
+
 def test_group_summary_counts():
     r = _make_result(
         _added("1", dept="eng"),
@@ -75,3 +83,9 @@ def test_group_summary_counts():
     summary = group_summary(groups)
     assert summary["eng"] == 2
     assert summary["hr"] == 1
+
+
+def test_group_summary_empty():
+    """group_summary on an empty grouping should return an empty dict."""
+    summary = group_summary({})
+    assert summary == {}
