@@ -43,3 +43,20 @@ def highlight_all_changes(
         if change.change_type == "modified":
             result[change.key] = highlight_change(change, use_color=use_color)
     return result
+
+
+def summarize_changes(changes: List[RowChange]) -> str:
+    """Return a brief summary of added, removed, and modified row counts.
+
+    Args:
+        changes: List of RowChange objects from a diff operation.
+
+    Returns:
+        A single-line string summarising the counts, e.g.
+        "added: 2, removed: 1, modified: 4"
+    """
+    counts: Dict[str, int] = {"added": 0, "removed": 0, "modified": 0}
+    for change in changes:
+        if change.change_type in counts:
+            counts[change.change_type] += 1
+    return ", ".join(f"{k}: {v}" for k, v in counts.items())
