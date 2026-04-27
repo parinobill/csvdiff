@@ -61,3 +61,10 @@ def test_unchanged_field_not_in_heatmap():
     hm = build_heatmap(_result(ch))
     assert hm.get("k", "name") == 0
     assert hm.get("k", "price") == 1
+
+
+def test_empty_diff_result_produces_empty_heatmap():
+    """An empty DiffResult should yield a heatmap with no entries."""
+    hm = build_heatmap(_result())
+    assert hm.top_cells(10) == []
+    assert hm.hottest_field() is None
