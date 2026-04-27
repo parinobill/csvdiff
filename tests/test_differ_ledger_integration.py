@@ -48,3 +48,11 @@ def test_single_run_totals_match_entry():
     assert t.added == entry.added
     assert t.removed == entry.removed
     assert t.modified == entry.modified
+
+
+def test_summary_contains_total_label():
+    """The summary output should always include a TOTAL line, even for one run."""
+    ledger = Ledger()
+    ledger.record("solo", _result(("added", "x")))
+    summary = ledger.summary()
+    assert "TOTAL" in summary
